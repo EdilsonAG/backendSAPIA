@@ -20,10 +20,12 @@ public class SapClientService {
     private final RestClient restClient;
     private final String sapBaseUrl;
     private final String sapClient;
+    private final AIClienteService aiClienteService;
 
     public SapClientService(
             @Value("${sap.base-url}") String sapBaseUrl,
-            @Value("${sap.client}") String sapClient) {
+            @Value("${sap.client}") String sapClient, AIClienteService aiClienteService) {
+        this.aiClienteService = aiClienteService;
         this.sapBaseUrl = sapBaseUrl;
         this.sapClient = sapClient;
         this.restClient = RestClient.create();
@@ -55,6 +57,8 @@ public class SapClientService {
 
     public Map<?, ?> createTicket(String authHeader, String csrfToken, String cookies, TicketRequest input) {
         boolean isIncident = input.type() == TicketRequest.TicketType.incident;
+
+        aiClienteService.iaPerguntar(input.description());
 
         String url = isIncident
                 ? sapBaseUrl + "/AI_CRM_GW_CREATE_INCIDENT_SRV/IncidentSet?sap-client=" + sapClient
