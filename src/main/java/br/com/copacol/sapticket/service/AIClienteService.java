@@ -17,7 +17,7 @@ public class AIClienteService {
     public AIClienteService(RestClient.Builder builder,@Value("${ia.server.base-url}") String baseUrl) {
         var factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(5));
-        factory.setReadTimeout(Duration.ofSeconds(30)); // IA demora, ajuste ao seu caso
+        factory.setReadTimeout(Duration.ofSeconds(500)); // IA demora, ajuste ao seu caso
 
         this.restClient = builder
                 .baseUrl(baseUrl)
@@ -25,14 +25,16 @@ public class AIClienteService {
                 .build();
     }
 record ChatResponse(String answer) {}
-record ChatRequest(String description) {}
+record BodyResponse(String body) {}
+record ChatRequest(String message) {}
 
-    public String iaPerguntar(String description) {
+    public String iaPerguntar(String message) {
+       // ChatResponse response = restClient.post()
         ChatResponse response = restClient.post()
                 .uri("/chat")
                 //.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenService.getToken())
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new ChatRequest(description))
+                .body(new ChatRequest(message))
                 .retrieve()
                 .body(ChatResponse.class);
 

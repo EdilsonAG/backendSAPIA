@@ -58,7 +58,11 @@ public class SapClientService {
     public Map<?, ?> createTicket(String authHeader, String csrfToken, String cookies, TicketRequest input) {
         boolean isIncident = input.type() == TicketRequest.TicketType.incident;
 
-        aiClienteService.iaPerguntar(input.description());
+        String ia = aiClienteService.iaPerguntar(input.description());
+
+        if (true) {
+            return Map.of("resposta",ia);
+        }
 
         String url = isIncident
                 ? sapBaseUrl + "/AI_CRM_GW_CREATE_INCIDENT_SRV/IncidentSet?sap-client=" + sapClient
