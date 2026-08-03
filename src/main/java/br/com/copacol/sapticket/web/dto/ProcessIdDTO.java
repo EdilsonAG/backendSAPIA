@@ -5,6 +5,13 @@ public class ProcessIdDTO {
     private String resposta;
     private String sessionId;
     private Status status;
+    private String pergunta;
+    public String getPergunta() {
+        return pergunta;
+    }
+    public void setPergunta(String pergunta) {
+        this.pergunta = pergunta;
+    }
     public String getProcessId() {
         return processId;
     }

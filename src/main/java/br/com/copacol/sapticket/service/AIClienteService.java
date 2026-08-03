@@ -9,6 +9,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import br.com.copacol.sapticket.web.dto.CriarTicketStatus;
+
  
 @Service
 public class AIClienteService {
@@ -44,18 +46,19 @@ record ChatRequest(String message, String session) {}
 //         return response != null ? response.answer() : "";
 //     }
 
-   
-    public String iaPerguntar(String session,String message) {
+   record ResponseIA(String resposta, CriarTicketStatus status, String description, String longText, String priority, String type) {}
+
+    public ResponseIA iaPerguntar(String session,String message) {
        // ChatResponse response = restClient.post()
-        ChatResponse response = restClient.post()
+        ResponseIA response = restClient.post()
                 .uri("/chat")
                 //.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenService.getToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ChatRequest(message,session))
                 .retrieve()
-                .body(ChatResponse.class);
+                .body(ResponseIA.class);
 
-                System.out.println(response.answer());
-        return response != null ? response.answer() : "";
+                System.out.println(response.resposta());
+        return response != null ? response : null;
     }
 }

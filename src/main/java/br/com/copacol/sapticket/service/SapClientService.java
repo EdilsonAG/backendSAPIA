@@ -1,10 +1,15 @@
 package br.com.copacol.sapticket.service;
 
+import br.com.copacol.sapticket.service.AIClienteService.ResponseIA;
 import br.com.copacol.sapticket.service.redis.RedisStatus;
+import br.com.copacol.sapticket.web.dto.CriarTicketStatus;
 import br.com.copacol.sapticket.web.dto.ProcessIdDTO;
 import br.com.copacol.sapticket.web.dto.RedisContextDTO;
 import br.com.copacol.sapticket.web.dto.Status;
 import br.com.copacol.sapticket.web.dto.TicketRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -63,86 +68,102 @@ public class SapClientService {
         }
     }
 
-    // public Map<?, ?> createTicket(String authHeader, String csrfToken, String
-    // cookies, TicketRequest input,String session) {
-    // boolean isIncident = input.type() == TicketRequest.TicketType.incident;
-
-    // aiClienteService.iaPerguntar(session,input.description());
-
-    // if (true) {
-    // return Map.of("resposta",isIncident);
-    // }
-
-    // String url = isIncident
-    // ? sapBaseUrl + "/AI_CRM_GW_CREATE_INCIDENT_SRV/IncidentSet?sap-client=" +
-    // sapClient
-    // : sapBaseUrl +
-    // "/AI_CRM_GW_MYBUSI_REQUIRE_SRV/BusinessRequirementSet?sap-client=" +
-    // sapClient;
-
-    // System.out.println("antes do body");
-    // Map<String, Object> body = isIncident
-    // ? Map.of(
-    // "ProcessType", "ZMIN",
-    // "Description", input.description(),
-    // "LongText", input.longText(),
-    // "Priority", input.priority())
-    // : Map.of(
-    // "Description", input.description(),
-    // "Priority", input.priority());
-
-    // System.out.println("depois do map body ja");
-    // try {
-
-    // String teste = restClient.post()
-    // .uri(url)
-    // .header(HttpHeaders.AUTHORIZATION, authHeader)
-    // .header("X-CSRF-Token", csrfToken)
-    // .header(HttpHeaders.COOKIE, cookies)
-    // .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-    // .body(body)
-    // .retrieve()
-    // .body(String.class);
-
-    // System.out.println("RESPOSTA SAP: " + teste);
-
-    // return Map.of("raw", teste);
-    // } catch (RestClientResponseException e) {
-    // e.printStackTrace();
-    // throw new SapClientException(
-    // "Erro do SAP (status " + e.getStatusCode().value() + "): " +
-    // e.getResponseBodyAsString(), e);
-    // }
-    // }
-
-    public Map<?, ?> createTicket(String authHeader, String csrfToken, String cookies, TicketRequest input,
-            String session) {
+    public Map<?, ?> createTicketcorreto(String authHeader, String csrfToken, String cookies, TicketRequest input,
+            String session, HttpServletRequest httpRequest, String longText) {
         boolean isIncident = input.type() == TicketRequest.TicketType.incident;
 
-        aiClienteService.iaPerguntar(session, input.description());
+        HttpSession session2 = httpRequest.getSession(false);
+        String pass =(String) session2.getAttribute("passwordBase64");
+        String cookiess =(String) session2.getAttribute("cookies");
+        String csrfTokens =(String) session2.getAttribute("csrfToken");
+         
 
-        return Map.of("teste", isIncident);
+        String url = isIncident
+                ? sapBaseUrl + "/AI_CRM_GW_CREATE_INCIDENT_SRV/IncidentSet?sap-client=" +
+                        sapClient
+                : sapBaseUrl +
+                        "/AI_CRM_GW_MYBUSI_REQUIRE_SRV/BusinessRequirementSet?sap-client=" +
+                        sapClient;
+
+        System.out.println("antes do body");
+        Map<String, Object> body = isIncident
+                ? Map.of(
+                        "ProcessType", "ZMIN",
+                        "Description", "FALHA",
+                        "LongText", longText,
+                        "Priority", input.priority())
+                : Map.of(
+                        "Description", "FALHA",
+                        "Priority", input.priority());
+
+        System.out.println("depois do map body ja");
+        try {
+
+            String teste = restClient.post()
+                    .uri(url)
+                    .header(HttpHeaders.AUTHORIZATION, "Basic "+pass)
+                    .header("X-CSRF-Token", csrfTokens)
+                    .header(HttpHeaders.COOKIE, cookiess)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                    .body(body)
+                    .retrieve()
+                    .body(String.class);
+
+            System.out.println("RESPOSTA SAP: " + teste);
+
+            return Map.of("raw", teste);
+        } catch (RestClientResponseException e) {
+            e.printStackTrace();
+            throw new SapClientException(
+                    "Erro do SAP (status " + e.getStatusCode().value() + "): " +
+                            e.getResponseBodyAsString(),
+                    e);
+        }
     }
 
-    public List<String> findProcessById(String session){
+    // public Map<?, ?> createTicket(String authHeader, String csrfToken, String cookies, TicketRequest input,
+    //         String session) {
+    //     boolean isIncident = input.type() == TicketRequest.TicketType.incident;
+
+    //     aiClienteService.iaPerguntar(session, input.description());
+
+    //     return Map.of("teste", isIncident);
+    // }
+
+    public List<String> findProcessById(String session) {
 
         return redisStatus.buscarProcessIdsDaSessao(session);
     }
 
-    public ProcessIdDTO findConversation(String processId){
+    public ProcessIdDTO findConversation(String processId) {
         return redisStatus.findConversationByProcessId(processId);
     }
 
     @Async("iaTaskExecutor")
-    public void processarMensagem(String session, TicketRequest input, String processId) {
+    public void processarMensagem(String session, TicketRequest input, String processId, HttpServletRequest httpRequest) {
         try {
-            String resposta = aiClienteService.iaPerguntar(session, input.description());
+            ResponseIA resposta = aiClienteService.iaPerguntar(session, input.description());
+
+         
 
             RedisContextDTO concluido = new RedisContextDTO();
             concluido.setProcessId(processId);
-            concluido.setResposta(resposta);
+            concluido.setPergunta(input.description());
+            concluido.setResposta(resposta.resposta());
             concluido.setSessionId(session);
             concluido.setStatus(Status.CONCLUIDO);
+
+            if (resposta.status() == CriarTicketStatus.PRONTO) {
+                this.createTicketcorreto(processId, processId, processId, input, session,httpRequest,resposta.longText());
+                System.out.println("chegou pra criar o ticket");
+                System.out.println("description");
+                System.out.println(resposta.description());
+                System.out.println("longtext");
+                System.out.println(resposta.longText());
+
+     
+            }
+
             redisStatus.salvar(processId, concluido);
 
         } catch (Exception e) {

@@ -48,7 +48,8 @@ public class AuthController {
             HttpSession session = httpRequest.getSession(true);
             
             session.setAttribute("username", usernameUpperCase);
-            session.setAttribute("passwordBase64", textoBase64);
+            session.setAttribute("passwordBase64", base64);
+            System.out.println(base64);
             session.setAttribute("csrfToken", csrf.csrfToken());
             session.setAttribute("cookies", csrf.cookies());
 

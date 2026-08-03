@@ -54,9 +54,10 @@ public class TicketController {
            redisContextDTO.setProcessId(processId);
            redisContextDTO.setSessionId(session.getId());
            redisContextDTO.setStatus(Status.PENDENTE);
+           redisContextDTO.setPergunta(request.description());
            redisStatus.adicionarProcessIdNaSessao(session.getId(), processId);
            redisStatus.salvar(processId, redisContextDTO);
-           sapClientService.processarMensagem(session.getId(), request,processId);
+           sapClientService.processarMensagem(session.getId(), request,processId,httpRequest);
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("processId", processId));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
