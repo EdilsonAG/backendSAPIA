@@ -46,6 +46,7 @@ public class AuthController {
             // getSession(true) cria a sessao; o Spring Session grava no Redis
             // e o cookie e emitido automaticamente conforme server.servlet.session.cookie.*
             HttpSession session = httpRequest.getSession(true);
+            
             session.setAttribute("username", usernameUpperCase);
             session.setAttribute("passwordBase64", textoBase64);
             session.setAttribute("csrfToken", csrf.csrfToken());

@@ -5,6 +5,7 @@ import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
  import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -26,15 +27,31 @@ public class AIClienteService {
     }
 record ChatResponse(String answer) {}
 record BodyResponse(String body) {}
-record ChatRequest(String message) {}
+record ChatRequest(String message, String session) {}
 
-    public String iaPerguntar(String message) {
+//  @Async("iaTaskExecutor")
+//     public String iaPerguntar(String session,String message) {
+//        // ChatResponse response = restClient.post()
+//         ChatResponse response = restClient.post()
+//                 .uri("/chat")
+//                 //.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenService.getToken())
+//                 .contentType(MediaType.APPLICATION_JSON)
+//                 .body(new ChatRequest(message,session))
+//                 .retrieve()
+//                 .body(ChatResponse.class);
+
+//                 System.out.println(response.answer());
+//         return response != null ? response.answer() : "";
+//     }
+
+   
+    public String iaPerguntar(String session,String message) {
        // ChatResponse response = restClient.post()
         ChatResponse response = restClient.post()
                 .uri("/chat")
                 //.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenService.getToken())
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new ChatRequest(message))
+                .body(new ChatRequest(message,session))
                 .retrieve()
                 .body(ChatResponse.class);
 

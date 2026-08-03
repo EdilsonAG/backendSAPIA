@@ -1,10 +1,15 @@
 package br.com.copacol.sapticket.service;
 
+import br.com.copacol.sapticket.service.redis.RedisStatus;
+import br.com.copacol.sapticket.web.dto.ProcessIdDTO;
+import br.com.copacol.sapticket.web.dto.RedisContextDTO;
+import br.com.copacol.sapticket.web.dto.Status;
 import br.com.copacol.sapticket.web.dto.TicketRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
@@ -12,6 +17,7 @@ import org.springframework.web.client.RestClientResponseException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -21,13 +27,15 @@ public class SapClientService {
     private final String sapBaseUrl;
     private final String sapClient;
     private final AIClienteService aiClienteService;
+    private final RedisStatus redisStatus;
 
     public SapClientService(
             @Value("${sap.base-url}") String sapBaseUrl,
-            @Value("${sap.client}") String sapClient, AIClienteService aiClienteService) {
+            @Value("${sap.client}") String sapClient, AIClienteService aiClienteService, RedisStatus redisStatus) {
         this.aiClienteService = aiClienteService;
         this.sapBaseUrl = sapBaseUrl;
         this.sapClient = sapClient;
+        this.redisStatus = redisStatus;
         this.restClient = RestClient.create();
     }
 
@@ -55,50 +63,95 @@ public class SapClientService {
         }
     }
 
-    public Map<?, ?> createTicket(String authHeader, String csrfToken, String cookies, TicketRequest input) {
+    // public Map<?, ?> createTicket(String authHeader, String csrfToken, String
+    // cookies, TicketRequest input,String session) {
+    // boolean isIncident = input.type() == TicketRequest.TicketType.incident;
+
+    // aiClienteService.iaPerguntar(session,input.description());
+
+    // if (true) {
+    // return Map.of("resposta",isIncident);
+    // }
+
+    // String url = isIncident
+    // ? sapBaseUrl + "/AI_CRM_GW_CREATE_INCIDENT_SRV/IncidentSet?sap-client=" +
+    // sapClient
+    // : sapBaseUrl +
+    // "/AI_CRM_GW_MYBUSI_REQUIRE_SRV/BusinessRequirementSet?sap-client=" +
+    // sapClient;
+
+    // System.out.println("antes do body");
+    // Map<String, Object> body = isIncident
+    // ? Map.of(
+    // "ProcessType", "ZMIN",
+    // "Description", input.description(),
+    // "LongText", input.longText(),
+    // "Priority", input.priority())
+    // : Map.of(
+    // "Description", input.description(),
+    // "Priority", input.priority());
+
+    // System.out.println("depois do map body ja");
+    // try {
+
+    // String teste = restClient.post()
+    // .uri(url)
+    // .header(HttpHeaders.AUTHORIZATION, authHeader)
+    // .header("X-CSRF-Token", csrfToken)
+    // .header(HttpHeaders.COOKIE, cookies)
+    // .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+    // .body(body)
+    // .retrieve()
+    // .body(String.class);
+
+    // System.out.println("RESPOSTA SAP: " + teste);
+
+    // return Map.of("raw", teste);
+    // } catch (RestClientResponseException e) {
+    // e.printStackTrace();
+    // throw new SapClientException(
+    // "Erro do SAP (status " + e.getStatusCode().value() + "): " +
+    // e.getResponseBodyAsString(), e);
+    // }
+    // }
+
+    public Map<?, ?> createTicket(String authHeader, String csrfToken, String cookies, TicketRequest input,
+            String session) {
         boolean isIncident = input.type() == TicketRequest.TicketType.incident;
 
-        String ia = aiClienteService.iaPerguntar(input.description());
+        aiClienteService.iaPerguntar(session, input.description());
 
-        if (true) {
-            return Map.of("resposta",ia);
-        }
+        return Map.of("teste", isIncident);
+    }
 
-        String url = isIncident
-                ? sapBaseUrl + "/AI_CRM_GW_CREATE_INCIDENT_SRV/IncidentSet?sap-client=" + sapClient
-                : sapBaseUrl + "/AI_CRM_GW_MYBUSI_REQUIRE_SRV/BusinessRequirementSet?sap-client=" + sapClient;
+    public List<String> findProcessById(String session){
 
-                System.out.println("antes do body");
-        Map<String, Object> body = isIncident
-                ? Map.of(
-                        "ProcessType", "ZMIN",
-                        "Description", input.description(),
-                        "LongText", input.longText(),
-                        "Priority", input.priority())
-                : Map.of(
-                        "Description", input.description(),
-                        "Priority", input.priority());
+        return redisStatus.buscarProcessIdsDaSessao(session);
+    }
 
-                        System.out.println("depois do map body ja");
+    public ProcessIdDTO findConversation(String processId){
+        return redisStatus.findConversationByProcessId(processId);
+    }
+
+    @Async("iaTaskExecutor")
+    public void processarMensagem(String session, TicketRequest input, String processId) {
         try {
-            
-            String teste = restClient.post()
-        .uri(url)
-        .header(HttpHeaders.AUTHORIZATION, authHeader)
-        .header("X-CSRF-Token", csrfToken)
-        .header(HttpHeaders.COOKIE, cookies)
-        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-        .body(body)
-        .retrieve()
-        .body(String.class);
+            String resposta = aiClienteService.iaPerguntar(session, input.description());
 
-System.out.println("RESPOSTA SAP: " + teste);
+            RedisContextDTO concluido = new RedisContextDTO();
+            concluido.setProcessId(processId);
+            concluido.setResposta(resposta);
+            concluido.setSessionId(session);
+            concluido.setStatus(Status.CONCLUIDO);
+            redisStatus.salvar(processId, concluido);
 
-return Map.of("raw", teste);
-        } catch (RestClientResponseException e) {
-            e.printStackTrace();
-            throw new SapClientException(
-                    "Erro do SAP (status " + e.getStatusCode().value() + "): " + e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            RedisContextDTO erro = new RedisContextDTO();
+            erro.setProcessId(processId);
+            erro.setSessionId(session);
+            erro.setStatus(Status.ERRO);
+            erro.setResposta(e.getMessage());
+            redisStatus.salvar(processId, erro);
         }
     }
 
