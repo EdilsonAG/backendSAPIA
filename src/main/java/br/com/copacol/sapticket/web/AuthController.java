@@ -6,8 +6,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.session.Session;
+import org.springframework.session.SessionRepository;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +28,8 @@ public class AuthController {
 
     private final SapClientService sapClientService;
 
+    @Autowired
+private SessionRepository<? extends Session> sessionRepository;
     public AuthController(SapClientService sapClientService) {
         this.sapClientService = sapClientService;
     }
@@ -45,11 +50,12 @@ public class AuthController {
 
             // getSession(true) cria a sessao; o Spring Session grava no Redis
             // e o cookie e emitido automaticamente conforme server.servlet.session.cookie.*
+         
+
             HttpSession session = httpRequest.getSession(true);
-            
+   
             session.setAttribute("username", usernameUpperCase);
             session.setAttribute("passwordBase64", base64);
-            System.out.println(base64);
             session.setAttribute("csrfToken", csrf.csrfToken());
             session.setAttribute("cookies", csrf.cookies());
 

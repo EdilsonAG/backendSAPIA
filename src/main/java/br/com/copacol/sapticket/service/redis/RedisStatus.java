@@ -2,9 +2,7 @@ package br.com.copacol.sapticket.service.redis;
 
 import java.time.Duration;
 import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+ 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 

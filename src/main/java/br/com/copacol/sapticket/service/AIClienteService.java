@@ -47,7 +47,7 @@ record ChatRequest(String message, String session) {}
 //     }
 
    record ResponseIA(String resposta, CriarTicketStatus status, String description, String longText, String priority, String type) {}
-
+                                                                         
     public ResponseIA iaPerguntar(String session,String message) {
        // ChatResponse response = restClient.post()
         ResponseIA response = restClient.post()
@@ -59,6 +59,8 @@ record ChatRequest(String message, String session) {}
                 .body(ResponseIA.class);
 
                 System.out.println(response.resposta());
+                System.out.println(response.description());
+                System.out.println(response.longText());
         return response != null ? response : null;
     }
 }

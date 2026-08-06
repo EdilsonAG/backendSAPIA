@@ -3,7 +3,13 @@ package br.com.copacol.sapticket.web.dto;
 public class RedisContextDTO {
     private String processId;
     private String sessionId;
-    private Status status;
+    private CriarTicketStatus status;
+    public CriarTicketStatus getStatus() {
+        return status;
+    }
+    public void setStatus(CriarTicketStatus status) {
+        this.status = status;
+    }
     private String resposta;
     private String pergunta;
     public String getPergunta() {
@@ -24,12 +30,7 @@ public class RedisContextDTO {
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
     }
-    public Status getStatus() {
-        return status;
-    }
-    public void setStatus(Status status) {
-        this.status = status;
-    }
+ 
     public String getResposta() {
         return resposta;
     }

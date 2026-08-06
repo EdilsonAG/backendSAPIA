@@ -2,6 +2,7 @@ package br.com.copacol.sapticket.web;
 
 import br.com.copacol.sapticket.service.SapClientService;
 import br.com.copacol.sapticket.service.redis.RedisStatus;
+import br.com.copacol.sapticket.web.dto.CriarTicketStatus;
 import br.com.copacol.sapticket.web.dto.ProcessIdDTO;
 import br.com.copacol.sapticket.web.dto.RedisContextDTO;
 import br.com.copacol.sapticket.web.dto.Status;
@@ -53,7 +54,7 @@ public class TicketController {
            RedisContextDTO redisContextDTO = new RedisContextDTO();
            redisContextDTO.setProcessId(processId);
            redisContextDTO.setSessionId(session.getId());
-           redisContextDTO.setStatus(Status.PENDENTE);
+           redisContextDTO.setStatus(CriarTicketStatus.COLETANDO);
            redisContextDTO.setPergunta(request.description());
            redisStatus.adicionarProcessIdNaSessao(session.getId(), processId);
            redisStatus.salvar(processId, redisContextDTO);
