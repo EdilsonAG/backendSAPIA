@@ -36,6 +36,7 @@ public class TicketController {
 
     @PostMapping
     public ResponseEntity<?> createTicket(@RequestBody TicketRequest request, HttpServletRequest httpRequest) {
+        System.out.println("CHEGOU NO CREATE");
         HttpSession session = httpRequest.getSession(false);
         String csrfToken = session != null ? (String) session.getAttribute("csrfToken") : null;
 
@@ -59,7 +60,7 @@ public class TicketController {
            redisStatus.adicionarProcessIdNaSessao(session.getId(), processId);
            redisStatus.salvar(processId, redisContextDTO);
            sapClientService.processarMensagem(session.getId(), request,processId,httpRequest);
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("processId", processId));
+            return ResponseEntity.status(HttpStatus.CREATED).body(redisContextDTO);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage() != null ? e.getMessage() : "Erro ao criar chamado"));
@@ -72,8 +73,11 @@ public class TicketController {
     }
 
     @GetMapping
-    public List<String> getMessage(HttpServletRequest httpRequest){
+    public List<ProcessIdDTO> getMessage(HttpServletRequest httpRequest){
       HttpSession session = httpRequest.getSession(false);
-        return sapClientService.findProcessById(session.getId());
+        return sapClientService.findProcessById(session.getId()).stream()
+                .map(sapClientService::findConversation)
+                .filter(java.util.Objects::nonNull)
+                .toList();
     }
 }
