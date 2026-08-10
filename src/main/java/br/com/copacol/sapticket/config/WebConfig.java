@@ -14,7 +14,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins(allowedOrigin)
+                //.allowedOrigins(allowedOrigin)
+                .allowedOriginPatterns(
+                    "http://localhost:5173",
+                    "http://192.168.0.3:5173",
+                    "https://*.trycloudflare.com"
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowCredentials(true);
     }
