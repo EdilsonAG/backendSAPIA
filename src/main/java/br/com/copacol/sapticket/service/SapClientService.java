@@ -60,14 +60,16 @@ public class SapClientService {
     public CsrfResult fetchCsrfToken(String authHeader) {
         String url = sapBaseUrl + "/AI_CRM_GW_CREATE_INCIDENT_SRV/?sap-client=" + sapClient;
 
-        
+        System.out.println(url);
+        System.out.println(authHeader);
         try {
             ResponseEntity<Void> response = restClient.get()
                     .uri(url)
-                    .header(HttpHeaders.AUTHORIZATION, authHeader)
+                    .header(HttpHeaders.AUTHORIZATION, "Basic "+ authHeader)
                     .header("X-CSRF-Token", "Fetch")
                     .retrieve()
                     .toBodilessEntity();
+                    System.out.println("teste");
 
             String csrfToken = response.getHeaders().getFirst("X-CSRF-Token");
             String cookies = String.join("; ", response.getHeaders().getOrEmpty(HttpHeaders.SET_COOKIE));

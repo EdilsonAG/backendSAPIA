@@ -41,12 +41,17 @@ private SessionRepository<? extends Session> sessionRepository;
             return ResponseEntity.badRequest().body(Map.of("error", "Usuário e senha são obrigatórios"));
         }
 
+        System.out.println(request.username());
+        System.out.println(request.password());
+
         try {
             String usernameUpperCase = request.username().toUpperCase();
             String textoBase64 = usernameUpperCase + ":" + request.password();
             
-            String base64 = Base64.getEncoder().encodeToString(textoBase64.toUpperCase().getBytes(StandardCharsets.UTF_8));
+            String base64 = Base64.getEncoder().encodeToString(textoBase64.getBytes(StandardCharsets.UTF_8));
              System.out.println(base64);
+
+         
             
              SapClientService.CsrfResult csrf = sapClientService.fetchCsrfToken(base64);
 

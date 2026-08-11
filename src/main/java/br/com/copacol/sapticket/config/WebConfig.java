@@ -19,7 +19,8 @@ public class WebConfig implements WebMvcConfigurer {
                     "http://localhost:5173",
                     "http://192.168.0.3:5173",
                     "https://*.trycloudflare.com",
-                    "http://10.99*"
+                    "http://10.99*",
+                    "http://10*"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowCredentials(true);
