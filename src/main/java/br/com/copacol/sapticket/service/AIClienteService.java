@@ -49,6 +49,7 @@ record ChatRequest(String message, String session) {}
    record ResponseIA(String resposta, CriarTicketStatus status, String description, String longText, String priority, String type) {}
                                                                          
     public ResponseIA iaPerguntar(String session,String message) {
+        System.out.println();
        // ChatResponse response = restClient.post()
         ResponseIA response = restClient.post()
                 .uri("/chat")
