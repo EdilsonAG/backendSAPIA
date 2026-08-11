@@ -2,7 +2,9 @@
 FROM eclipse-temurin:25-jdk-jammy AS build
 WORKDIR /app
 COPY . .
-RUN ./mvnw clean package -DskipTests
+RUN chmod +x mvnw && \
+    sed -i 's/\r$//' mvnw && \
+    ./mvnw clean package -DskipTests
 # aqui dentro existe: código fonte, Maven, JDK, target/api.jar
 
 # ESTÁGIO 2: runtime (imagem final)
