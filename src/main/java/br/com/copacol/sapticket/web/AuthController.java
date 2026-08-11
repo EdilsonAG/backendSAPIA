@@ -1,6 +1,7 @@
 package br.com.copacol.sapticket.web;
 
 import br.com.copacol.sapticket.service.SapClientService;
+import br.com.copacol.sapticket.service.SapClientService.SapClientException;
 import br.com.copacol.sapticket.web.dto.LoginRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -47,7 +48,7 @@ private SessionRepository<? extends Session> sessionRepository;
             String base64 = Base64.getEncoder().encodeToString(textoBase64.toUpperCase().getBytes(StandardCharsets.UTF_8));
              System.out.println(base64);
             
-             //SapClientService.CsrfResult csrf = sapClientService.fetchCsrfToken(base64);
+             SapClientService.CsrfResult csrf = sapClientService.fetchCsrfToken(base64);
 
             // getSession(true) cria a sessao; o Spring Session grava no Redis
             // e o cookie e emitido automaticamente conforme server.servlet.session.cookie.*
@@ -57,13 +58,13 @@ private SessionRepository<? extends Session> sessionRepository;
    
             session.setAttribute("username", usernameUpperCase);
             session.setAttribute("passwordBase64", base64);
-            // session.setAttribute("csrfToken", csrf.csrfToken());
-            // session.setAttribute("cookies", csrf.cookies());
-            session.setAttribute("csrfToken", "csrf.csrfToken()");
-            session.setAttribute("cookies", "csrf.cookies()");
+            session.setAttribute("csrfToken", csrf.csrfToken());
+            session.setAttribute("cookies", csrf.cookies());
+            // session.setAttribute("csrfToken", "csrf.csrfToken()");
+            // session.setAttribute("cookies", "csrf.cookies()");
 
             return ResponseEntity.ok(Map.of("username", usernameUpperCase));
-        } catch (Exception e) {
+        } catch (Exception e ) {
             log.warn("Falha no login SAP para usuario {}", request.username(), e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Usuário ou senha inválidos"));
         }

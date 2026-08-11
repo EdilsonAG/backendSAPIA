@@ -60,10 +60,11 @@ public class SapClientService {
     public CsrfResult fetchCsrfToken(String authHeader) {
         String url = sapBaseUrl + "/AI_CRM_GW_CREATE_INCIDENT_SRV/?sap-client=" + sapClient;
 
+        
         try {
             ResponseEntity<Void> response = restClient.get()
                     .uri(url)
-                    .header(HttpHeaders.AUTHORIZATION, "Basic U0RLMDIxOkNvcGFjb2wyNkA=")
+                    .header(HttpHeaders.AUTHORIZATION, authHeader)
                     .header("X-CSRF-Token", "Fetch")
                     .retrieve()
                     .toBodilessEntity();
@@ -174,8 +175,8 @@ public class SapClientService {
             if (resposta.status() == CriarTicketStatus.PRONTO) {
                 System.out.println("VEIO PRA CRIAR TICKET");
                 System.out.println("dentro do if");
-                // this.createTicketcorreto(processId, processId, processId, input, session, httpRequest,
-                //         resposta.longText());
+                this.createTicketcorreto(processId, processId, processId, input, session, httpRequest,
+                        resposta.longText());
                 System.out.println("chegou pra criar o ticket");
                 System.out.println("description");
                 System.out.println(resposta.description());
