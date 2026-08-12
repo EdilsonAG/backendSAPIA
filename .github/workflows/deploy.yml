@@ -52,7 +52,12 @@ jobs:
           username: ${{ secrets.OCI_USER }}
           key: ${{ secrets.OCI_SSH_KEY }}
           script: |
-            cd /home/ubuntu/backends
-            git pull origin main
-            docker compose pull backendcontroller
-            docker compose up -d backendcontroller
+            set -e
+            docker pull edialgon/backendcontroller:latest
+            docker stop backendcontroller || true
+            docker rm backendcontroller || true
+            docker run -d \
+              --name backendcontroller \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              edialgon/backendcontroller:latest
